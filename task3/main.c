@@ -10,6 +10,7 @@ int main(int argc, char *argv[]) {
     printf("humanize_file() implementation failed.");
     return 1;
   }
-  printf("humanize_file() implementation altered %d words.\n", words_humanized);
+  printf("\nhumanize_file() implementation altered %d words.\n",
+         words_humanized);
   return 0;
 }

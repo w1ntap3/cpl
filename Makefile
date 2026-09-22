@@ -2,7 +2,7 @@ SRC1 := $(wildcard task1/*.c)
 SRC2 := $(wildcard task2/*.c)
 SRC3 := $(wildcard task3/*.c)
 
-TARGET1 := website
+TARGET1 := password
 TARGET2 := multiclass
 TARGET3 := humanize
 
