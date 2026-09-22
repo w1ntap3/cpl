@@ -15,6 +15,7 @@ typedef struct {
 
 static CURL *curl;
 static CURLcode res;
+static int curl_global_ready = 0;
 
 size_t write_response(void *data, size_t size, size_t nmemb, void *userdata) {
   ResponseBuffer *buf = userdata;
@@ -83,11 +84,22 @@ int get_synonym(const char *word, char *buf, const size_t buf_size) {
     snprintf(buf, buf_size, "%s", word);
     return 0;
   }
+
+  if (!curl_global_ready) {
+    res = curl_global_init(CURL_GLOBAL_DEFAULT);
+    if (res != CURLE_OK) {
+      fprintf(stderr, "CURL: curl_global_init() failed. (%s)",
+              curl_easy_strerror(res));
+      return -1;
+    }
+    curl_global_ready = 1;
+  }
+
   curl = curl_easy_init();
   if (curl == NULL) {
     fprintf(stderr,
             "CURL: curl_easy_init() failed. variable CURL *curl is NULL");
-    return 1;
+    return -1;
   }
 
   // compile the url
@@ -100,18 +112,30 @@ int get_synonym(const char *word, char *buf, const size_t buf_size) {
     fprintf(stderr, "CURL: curl_easy_setopt() failed. (%s)",
             curl_easy_strerror(res));
     curl_easy_cleanup(curl);
-    return 1;
+    return -1;
   }
 
   ResponseBuffer response = {0};
   res = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_response);
+  if (res != CURLE_OK) {
+    fprintf(stderr, "CURL: curl_easy_setopt() failed. (%s)",
+            curl_easy_strerror(res));
+    curl_easy_cleanup(curl);
+    return -1;
+  }
   res = curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+  if (res != CURLE_OK) {
+    fprintf(stderr, "CURL: curl_easy_setopt() failed. (%s)",
+            curl_easy_strerror(res));
+    curl_easy_cleanup(curl);
+    return -1;
+  }
   res = curl_easy_perform(curl);
   if (res != CURLE_OK) {
     fprintf(stderr, "CURL: curl_easy_perform() failed. (%s)",
             curl_easy_strerror(res));
     curl_easy_cleanup(curl);
-    return 1;
+    return -1;
   }
 
   curl_easy_cleanup(curl);
@@ -120,10 +144,10 @@ int get_synonym(const char *word, char *buf, const size_t buf_size) {
   if (extract_synonym(response.data, synonym, sizeof(synonym)) != 0) {
     fprintf(stderr, "extract_synonym() failed for response: %s\n",
             response.data);
-    return 1;
+    return -1;
   }
 
   snprintf(buf, buf_size, "%s", synonym);
   printf("%s => %s\n", word, synonym);
-  return 0;
+  return 1;
 }

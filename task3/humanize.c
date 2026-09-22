@@ -1,4 +1,7 @@
 #include "humanize.h"
 #include "synonym.h"
 
-int humanize_file(const char *file_name) { return 0; }
+int humanize_file(const char *file_name) {
+  int words_humanized = 0;
+  return words_humanized;
+}
