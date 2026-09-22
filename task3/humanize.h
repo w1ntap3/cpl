@@ -7,4 +7,4 @@
  */
 int humanize_file(const char *file_name);
 
-#endif // !HUMANIZE_H
+#endif

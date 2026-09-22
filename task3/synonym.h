@@ -8,4 +8,4 @@
  */
 int get_synonym(const char *word, char *buf, const size_t buf_size);
 
-#endif // !SYNONYM_H
+#endif
