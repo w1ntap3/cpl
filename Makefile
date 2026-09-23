@@ -6,7 +6,7 @@ TARGET1 := password
 TARGET2 := multiclass
 TARGET3 := humanize
 
-FLAGS := -Wall -Werror
+FLAGS := -Wall -Werror -O2 
 
 .PHONY: task1 task2 task3 clean
 

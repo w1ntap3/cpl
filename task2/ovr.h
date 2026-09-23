@@ -1,12 +1,10 @@
 #ifndef OVR_H
 #define OVR_H
 
-typedef enum {
-  WEATHER_SNOWY = 0,
-  WEATHER_SUNNY,
-  WEATHER_RAINY,
-  WEATHER_CLOUDY
-} weather_class;
+#define WEATHER_SNOWY "snowy"
+#define WEATHER_SUNNY "sunny"
+#define WEATHER_RAINY "rainy"
+#define WEATHER_CLOUDY "cloudy"
 
 struct Features {
   float temperature; // in celsius
@@ -15,6 +13,6 @@ struct Features {
   float cloudiness;  // in percentage
 };
 
-weather_class ovr_classify(const struct Features);
-
+// Classifies a sample by using One vs Rest classification
+char *ovr_classify(const struct Features);
 #endif
