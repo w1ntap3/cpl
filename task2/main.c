@@ -41,7 +41,7 @@ int main(void) {
     printf("Your OvR model's accuracy: 0%%\n");
   } else {
     float accuracy = 100.0f * (float)correct / ((float)(correct + mistakes));
-    printf("Your OvR model's accuracy: %f%%\n", accuracy);
+    printf("Your OvR model's accuracy: %.3f%%\n", accuracy);
   }
 
   // print out accuracy
