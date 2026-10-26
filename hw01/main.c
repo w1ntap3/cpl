@@ -3,32 +3,34 @@
 #include <stdlib.h>
 
 #define MEASUREMENT_FORMULA_EXIST(prob)                                        \
-  (0.8f * (float)prob) / (0.8f * (float)prob + 0.2 * (1 - (float)prob))
+  (0.8 * (prob)) / (0.8 * (prob) + 0.2 * (1.0 - (prob)))
 
 #define EMPTY_MEASUREMENT_FORMULA(prob)                                        \
-  (0.2f * (float)prob) / (0.2f * (float)prob + 0.8 * (1 - (float)prob))
+  (0.2 * (prob)) / (0.2 * (prob) + 0.8 * (1.0 - (prob)))
 
 typedef struct {
-  float prob;
-  float next_prob;
+  double prob;
+  double next_prob;
 } Probability;
 
-static inline uint8_t calculate_next_prob(const float prob, float *next_prob,
+static inline uint8_t calculate_next_prob(const double prob, double *next_prob,
                                           const uint8_t measurement);
 
 int main(int argc, char *argv[]) {
-  Probability bayesian_prob = {.prob = 0.5f, .next_prob = 0.0f};
-
   for (int a = 1; a < argc; a++) {
     char *endptr;
     long value = strtol(argv[a], &endptr, 10);
 
     if (*argv[a] == '\0' || *endptr != '\0' || (value != 0 && value != 1)) {
-      fprintf(stderr, "Error: Invalid input.\n");
+      printf("Error: Invalid input.\n");
       return 1;
     }
+  }
 
-    uint8_t meas = (uint8_t)value;
+  Probability bayesian_prob = {.prob = 0.5, .next_prob = 0.0};
+
+  for (int a = 1; a < argc; a++) {
+    uint8_t meas = (uint8_t)atoi(argv[a]);
 
     uint8_t err =
         calculate_next_prob(bayesian_prob.prob, &bayesian_prob.next_prob, meas);
@@ -45,7 +47,7 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-static inline uint8_t calculate_next_prob(const float prob, float *next_prob,
+static inline uint8_t calculate_next_prob(const double prob, double *next_prob,
                                           const uint8_t measurement) {
   switch (measurement) {
   case 0:
