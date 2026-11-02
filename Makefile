@@ -31,8 +31,8 @@ hw01:
 	zip -r hw01/hw01.zip ${SRC4}
 
 hw02:
-	@gcc -o ./hw02/$(TARGET5) $(SRC5) $(FLAGS)
-	@./hw02/${TARGET5}
+	@gcc -o ./hw02/$(TARGET5) $(SRC5) $(FLAGS) -lm
+	@./hw02/${TARGET5} 20 30 123 23913 29 3
 	@zip -r ./hw02/hw02.zip ${SRC5}
 
 clean:
