@@ -31,9 +31,9 @@ hw01:
 	zip -r hw01/hw01.zip ${SRC4}
 
 hw02:
-	@gcc -o ./hw02/$(TARGET5) $(SRC5) $(FLAGS) -lm
-	@./hw02/${TARGET5} 20 30 123 23913 29 3
-	@zip -r ./hw02/hw02.zip ${SRC5}
+	@gcc -std=c99 -pedantic $(FLAGS) -g -o ./hw02/$(TARGET5) $(SRC5) -lm
+	@echo "0.0 5.0" | ./hw02/$(TARGET5) 21.0 21.0 1.0 11.0 11.0 0.0
+	@cd ./hw02 && zip -q hw02.zip main.c
 
 clean:
 	rm -f $(TARGET1) $(TARGET2) $(TARGET3) $(TARGET4) ${TARGET5}

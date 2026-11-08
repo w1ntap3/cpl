@@ -2,8 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// w faps
-
 #define ARG_FLOAT_ELEMENTS 6
 #define ARG_FLOAT_H 0
 #define ARG_FLOAT_W 1
@@ -12,20 +10,32 @@
 #define ARG_FLOAT_Y 4
 #define ARG_FLOAT_ALPHA 5
 
+#define BAYESIAN_OCCUPIED(p)                                                    \
+  (0.8f * (p)) / (0.8f * (p) + 0.2f * (1.0f - (p)))
+
+#define BAYESIAN_FREE(p)                                                        \
+  (0.2f * (p)) / (0.2f * (p) + 0.8f * (1.0f - (p)))
+
+#define PRIOR_PROB 0.5f
+#define PROB_TOLERANCE 1e-6
+
 int raycast(double angle_deg, double distance_m, double cell_size_m,
             int ***out_cells, int *out_count);
 
 int main(int argc, char *argv[]) {
   if (argc != ARG_FLOAT_ELEMENTS + 1) {
-    printf("Invalid command-line arguments");
+    fprintf(stderr, "ERROR: invalid arguments\n");
     return 103;
   }
+
   float arg_floats[ARG_FLOAT_ELEMENTS]; // indexing follows the order of
                                         // arguments from courseware
   for (int i = 0; i < ARG_FLOAT_ELEMENTS; i++) {
-    arg_floats[i] = strtof(argv[i + 1], NULL);
-    if (arg_floats[i] == HUGE_VALF || arg_floats[i] == 0.0F) {
-      printf("Invalid command-line arguments");
+    char *endptr;
+    arg_floats[i] = strtof(argv[i + 1], &endptr);
+    if (endptr == argv[i + 1] || *endptr != '\0' ||
+        arg_floats[i] == HUGE_VALF) {
+      fprintf(stderr, "ERROR: invalid arguments\n");
       return 103;
     }
   }
@@ -38,18 +48,66 @@ int main(int argc, char *argv[]) {
   float occ_grid[n_height][n_width];
   for (int i = 0; i < n_height; i++) {
     for (int j = 0; j < n_width; j++) {
-      occ_grid[i][j] = 0.5f;
+      occ_grid[i][j] = PRIOR_PROB;
     }
   }
 
-  while (1) {
-    float angle, distance;
-    int ret = scanf("%f %f", &angle, &distance);
+  int robot_col =
+      (int)(arg_floats[ARG_FLOAT_X] / arg_floats[ARG_FLOAT_CELL_SIZE]);
+  int robot_row =
+      n_height - 1 -
+      (int)(arg_floats[ARG_FLOAT_Y] / arg_floats[ARG_FLOAT_CELL_SIZE]);
 
+  while (1) {
+    float s_angle, s_distance;
+    int ret = scanf("%f %f", &s_angle, &s_distance);
+    if (ret == EOF) {
+      break;
+    }
     if (ret != 2) {
-      fprintf(stderr, "Invalid sensor data");
+      fprintf(stderr, "ERROR: invalid sensor data\n");
       return 102;
     }
+
+    float m_angle = arg_floats[ARG_FLOAT_ALPHA] + s_angle;
+    int **cells = NULL;
+    int count = 0;
+    if (!raycast(m_angle, s_distance, arg_floats[ARG_FLOAT_CELL_SIZE], &cells,
+                 &count)) {
+      fprintf(stderr, "ERROR: raycast failure\n");
+      return 101;
+    }
+
+    for (int i = 0; i < count; i++) {
+      int col = robot_col + cells[i][0];
+      int row = robot_row - cells[i][1];
+      if (row < 0 || row >= n_height || col < 0 || col >= n_width) {
+        continue;
+      }
+      occ_grid[row][col] = (i == count - 1)
+                               ? BAYESIAN_OCCUPIED(occ_grid[row][col])
+                               : BAYESIAN_FREE(occ_grid[row][col]);
+    }
+
+    for (int i = 0; i < count; i++) {
+      free(cells[i]);
+    }
+    free(cells);
+  }
+
+  for (int i = 0; i < n_height; i++) {
+    for (int j = 0; j < n_width; j++) {
+      if (i == robot_row && j == robot_col) {
+        putchar('*');
+      } else if (fabs(occ_grid[i][j] - PRIOR_PROB) < PROB_TOLERANCE) {
+        putchar('-');
+      } else if (occ_grid[i][j] > PRIOR_PROB) {
+        putchar('#');
+      } else {
+        putchar(' ');
+      }
+    }
+    putchar('\n');
   }
   return 0;
 }
